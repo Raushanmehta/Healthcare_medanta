@@ -1,0 +1,1 @@
+export const GenderOption = ['Male','Femail','Other' ]

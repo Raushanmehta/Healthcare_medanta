@@ -9,14 +9,14 @@ export default function Home() {
       <section className="remove-scrollbar container my-auto">
         <div className="sub-container max-w-[496px] ">
           <Image
-            src="/assets/icons/logo-full.svg"
+            src="/assets/icons/medanta-logo.png"
             alt="patient"
             width={1000}
             height={1000} 
             className="mb-12 h-10 w-fit"
           />
           <PatientsForms/>
-          <div className="text-14-regular mt-20 flex justify-between ">
+          <div className="text-10-regular mt-10 flex justify-between ">
             <p className=" justify-items-end text-dark-600 xl:text-left ">
           © 2024 CarePlus
 

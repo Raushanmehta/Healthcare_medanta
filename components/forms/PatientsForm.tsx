@@ -21,8 +21,6 @@ export enum FormFieldType {
   SELECTON = 'selecton'
 }
 
-
-
 const PatientsForms = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +41,6 @@ const PatientsForms = () => {
       const userData = { name, email, phone };
       const user = await createUser(userData);
       if (user) router.push(`/patients/${user.$id}/register`)
-
     } catch (error) {
       console.log(error);
     }
@@ -53,20 +50,19 @@ const PatientsForms = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-1">
-        <section className="mb-12 space-y-4">
-          <h1 className="header">Hi there 👋</h1>
-          <p className="text-dark-700">Get Start with Appointments.</p>
+        <section className="mb-10 space-y-4">
+          <h1 className="header text-white/70">Hi there 👋</h1>
+          <p className="text-dark-700 gap-3">Get started with Appointments.</p>
         </section>
         <CustomFormField
           fieldType={FormFieldType.INPUT}
           control={form.control}
-          name="username"
+          name="name"
           label="Full name"
-          placeholder="Enter your username"
+          placeholder="Enter your full name"
           iconSrc="/assets/icons/user.svg"
           iconAlt="user"
         />
-
         <CustomFormField
           fieldType={FormFieldType.INPUT}
           control={form.control}

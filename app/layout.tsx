@@ -13,6 +13,7 @@ const fontSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Medanta",
+  icons: "/assets/icons/icon-logo.png",
   description: "Healthcare Management System",
 };
 
