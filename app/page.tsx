@@ -18,7 +18,7 @@ export default function Home() {
           <PatientsForms/>
           <div className="text-10-regular mt-10 flex justify-between ">
             <p className=" justify-items-end text-dark-600 xl:text-left ">
-          © 2024 CarePlus
+          © 2024 Medanta
 
             </p>
             <Link href={"/?admin=true"} className="text-green-500">Admin</Link>
