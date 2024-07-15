@@ -6,9 +6,9 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
 import { Form, FormControl } from "../ui/form";
-import { createUser } from "@/lib/actions/patient.actions";
+import { createUser, registerPatient } from "@/lib/actions/patient.actions";
 import CustomFormField from "../CustomFormField";
-import { PatientFormValidation, UserFormValidation } from "@/lib/Validation";
+import { PatientFormValidation } from "@/lib/Validation";
 import SubmitButton from "../SubmitButton";
 import { FormFieldType } from "./PatientsForm";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
@@ -16,10 +16,10 @@ import { Doctors, GenderOption, IdentificationTypes, PatientFormDefaultValues } 
 import { Label } from "../ui/label";
 import { SelectItem } from "../ui/select";
 import Image from "next/image";
-import FileUploder from "../FileUploder";
+import FileUploader from "../FileUploder";
 
 interface User {
-  // Define the properties for the User interface
+  $id: string;
   name: string;
   email: string;
   phone: string;
@@ -35,27 +35,46 @@ const RegisterForm = ({ user }: { user: User }) => {
     defaultValues: {
       ...PatientFormDefaultValues,
       name: "",
-      email: "",
+      email: "", 
       phone: "",
     },
   });
 
-  async function onSubmit({ name, email, phone }: z.infer<typeof UserFormValidation>) {
+  async function onSubmit(values: z.infer<typeof PatientFormValidation>) {
     setIsLoading(true);
+    let formData: FormData | undefined;
+
+    if (values.identificationDocument && values.identificationDocument.length > 0) {
+      const blobFile = values.identificationDocument[0];
+      formData = new FormData();
+      formData.append('blobFile', blobFile);
+      formData.append('fileName', blobFile.name);
+    }
 
     try {
-     
+      const PatientData = {
+        ...values,
+        userId: user.$id,
+        birthDate: new Date(values.birthDate),
+        identificationDocument: formData,
+      };
+      // @ts-ignore
+      const patient = await registerPatient(PatientData);
+      if (patient) {
+        router.push(`/patient/${user.$id}/new-appointment`);
+      }
     } catch (error) {
-      console.log(error);
+      console.log("Enter registering patient",error);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
-  }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12 flex-1">
         <section className="space-y-4">
-          <h1 className="header text-white-/70">Welcome👋</h1>
+          <h1 className="header text-white-/70">Welcome to registration👋</h1>
           <p className="text-dark-700">Let us know more about yourself.</p>
         </section>
 
@@ -98,7 +117,6 @@ const RegisterForm = ({ user }: { user: User }) => {
             control={form.control}
             name="birthDate"
             label="Date of Birth"
-
           />
           <CustomFormField
             fieldType={FormFieldType.SKELETON}
@@ -132,15 +150,13 @@ const RegisterForm = ({ user }: { user: User }) => {
             name="address"
             label="Address"
             placeholder="Indian street road"
-
           />
           <CustomFormField
             fieldType={FormFieldType.INPUT}
             control={form.control}
             name="occupation"
             label="Occupation"
-            placeholder="Software Enginner"
-
+            placeholder="Software Engineer"
           />
         </div>
         <div className="flex flex-col gap-6 xl:flex-row">
@@ -150,17 +166,14 @@ const RegisterForm = ({ user }: { user: User }) => {
             name="emergencyContactName"
             label="Emergency contact name"
             placeholder="Emergency Contact Name"
-
           />
           <CustomFormField
             fieldType={FormFieldType.PHONE_INPUT}
             control={form.control}
             name="emergencyContactNumber"
-            label="EmergencyContactNumber"
+            label="Emergency Contact Number"
             placeholder="(555) 123-4567"
           />
-
-
         </div>
 
         <section className="space-y-6">
@@ -187,7 +200,6 @@ const RegisterForm = ({ user }: { user: User }) => {
                 />
                 <p>{doctor.name}</p>
               </div>
-
             </SelectItem>
           ))}
         </CustomFormField>
@@ -198,7 +210,7 @@ const RegisterForm = ({ user }: { user: User }) => {
             control={form.control}
             name="insuranceProvider"
             label="Insurance provider"
-            placeholder="BlueCross BlueShild"
+            placeholder="BlueCross BlueShield"
           />
           <CustomFormField
             fieldType={FormFieldType.INPUT}
@@ -206,7 +218,6 @@ const RegisterForm = ({ user }: { user: User }) => {
             name="insurancePolicyNumber"
             label="Insurance policy Number"
             placeholder="ABCD123456789"
-
           />
         </div>
 
@@ -216,15 +227,14 @@ const RegisterForm = ({ user }: { user: User }) => {
             control={form.control}
             name="allergies"
             label="Allergies (if any)"
-            placeholder="Peanuts,Penicillin,Pollen"
+            placeholder="Peanuts, Penicillin, Pollen"
           />
           <CustomFormField
             fieldType={FormFieldType.TEXTAREA}
             control={form.control}
             name="currentMedication"
-            label="Current Medication (if any) "
-            placeholder="Ibuprofen 200mg, paracetamol 500mg"
-
+            label="Current Medication (if any)"
+            placeholder="Ibuprofen 200mg, Paracetamol 500mg"
           />
         </div>
 
@@ -233,16 +243,15 @@ const RegisterForm = ({ user }: { user: User }) => {
             fieldType={FormFieldType.TEXTAREA}
             control={form.control}
             name="familyMedicalHistory"
-            label="Femaily Medical History"
-            placeholder="Mother had brain cancer, had heart disease"
+            label="Family Medical History"
+            placeholder="Mother had brain cancer, heart disease"
           />
           <CustomFormField
             fieldType={FormFieldType.TEXTAREA}
             control={form.control}
             name="pastMedicalHistory"
             label="Past Medical History"
-            placeholder="Appendectomy, Tonsillectom"
-
+            placeholder="Appendectomy, Tonsillectomy"
           />
         </div>
 
@@ -260,7 +269,6 @@ const RegisterForm = ({ user }: { user: User }) => {
         >
           {IdentificationTypes.map((type) => (
             <SelectItem key={type} value={type}>
-
               {type}
             </SelectItem>
           ))}
@@ -272,17 +280,16 @@ const RegisterForm = ({ user }: { user: User }) => {
           name="identificationNumber"
           label="Identification number"
           placeholder="123456789"
-
         />
 
         <CustomFormField
           fieldType={FormFieldType.SKELETON}
           control={form.control}
-          name="identitficationDocument"
-          label="Scanned copy identification document"
+          name="identificationDocument"
+          label="Scanned copy of identification document"
           renderSkeleton={(field) => (
             <FormControl>
-              <FileUploder files={field.value} onchange={field.onChange} />
+              <FileUploader files={field.value} onChange={field.onChange} />
             </FormControl>
           )}
         />
@@ -297,25 +304,19 @@ const RegisterForm = ({ user }: { user: User }) => {
           control={form.control}
           name="treatmentConsent"
           label="I consent to treatment"
-
         />
         <CustomFormField
           fieldType={FormFieldType.CHECKBOX}
           control={form.control}
-          name="disclosuerConsent"
-          label="I consent discoluser of information"
-
+          name="disclosureConsent"
+          label="I consent to disclosure of information"
         />
         <CustomFormField
           fieldType={FormFieldType.CHECKBOX}
           control={form.control}
           name="privacyConsent"
           label="I consent to privacy policy"
-
         />
-
-        
-        
 
         <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
       </form>
@@ -323,9 +324,4 @@ const RegisterForm = ({ user }: { user: User }) => {
   );
 };
 
-export default RegisterForm;     
-
-
-
-
-// 2:17:55 last seen
+export default RegisterForm;

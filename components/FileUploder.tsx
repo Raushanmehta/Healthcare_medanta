@@ -1,15 +1,17 @@
-"use client"
+// components/FileUploader.tsx
+
+'use client'
 import { convertFileToUrl } from '@/lib/utils'
 import Image from 'next/image'
 import React, { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 
-type FileUploderProps = {
+type FileUploaderProps = {
     files: File[] | undefined,
     onChange: (files: File[]) => void
 }
 
-const FileUploder = ({ files, onChange }: FileUploderProps) => {
+const FileUploader = ({ files, onChange }: FileUploaderProps) => {
     const onDrop = useCallback((acceptedFiles: File[]) => {
         onChange(acceptedFiles)
     }, [onChange])
@@ -49,4 +51,4 @@ const FileUploder = ({ files, onChange }: FileUploderProps) => {
     )
 }
 
-export default FileUploder;
+export default FileUploader;
