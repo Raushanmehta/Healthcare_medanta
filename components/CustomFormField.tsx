@@ -121,7 +121,7 @@ const RenderField = ({ field, props }: { field: any; props: CustomProps }) => {
                     </FormControl>
                 </div>
             );
-        case FormFieldType.SKELETON:
+        case FormFieldType.SELECTON:
             return renderSkeleton ? renderSkeleton(field) : null;
         case FormFieldType.CHECKBOX:
             return (

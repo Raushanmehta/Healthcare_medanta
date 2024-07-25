@@ -45,26 +45,37 @@ const RegisterForm = ({ user }: { user: User }) => {
     let formData: FormData | undefined;
 
     if (values.identificationDocument && values.identificationDocument.length > 0) {
-      const blobFile = values.identificationDocument[0];
+      const blobFile = new Blob([values.identificationDocument[0]],{type:values.identificationDocument[0].type,
+
+      });
+      
       formData = new FormData();
       formData.append('blobFile', blobFile);
-      formData.append('fileName', blobFile.name);
+      formData.append('fileName', values.identificationDocument[0].name);
     }
 
     try {
+      console.log("Form values before submission:", values);
+      
       const PatientData = {
         ...values,
         userId: user.$id,
         birthDate: new Date(values.birthDate),
         identificationDocument: formData,
       };
+      
+      console.log("Patient data to be submitted:", PatientData);
       // @ts-ignore
       const patient = await registerPatient(PatientData);
+      
       if (patient) {
-        router.push(`/patient/${user.$id}/new-appointment`);
+        console.log("Patient registered successfully:", patient);
+        router.push(`/patients/${user.$id}/new-appointment`);
+      } else {
+        console.error("Failed to register patient: No response from API");
       }
     } catch (error) {
-      console.log("Enter registering patient",error);
+      console.error("Error registering patient:", error);
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +130,7 @@ const RegisterForm = ({ user }: { user: User }) => {
             label="Date of Birth"
           />
           <CustomFormField
-            fieldType={FormFieldType.SKELETON}
+            fieldType={FormFieldType.SELECTON} // Ensure this is correct
             control={form.control}
             name="gender"
             label="Gender"
@@ -283,7 +294,7 @@ const RegisterForm = ({ user }: { user: User }) => {
         />
 
         <CustomFormField
-          fieldType={FormFieldType.SKELETON}
+          fieldType={FormFieldType.SELECTON} // Ensure this is correct
           control={form.control}
           name="identificationDocument"
           label="Scanned copy of identification document"
