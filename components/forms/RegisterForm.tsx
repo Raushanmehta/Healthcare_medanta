@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
 import { Form, FormControl } from "../ui/form";
-import { createUser, registerPatient } from "@/lib/actions/patient.actions";
+import { registerPatient } from "@/lib/actions/patient.actions";
 import CustomFormField from "../CustomFormField";
 import { PatientFormValidation } from "@/lib/Validation";
 import SubmitButton from "../SubmitButton";
@@ -23,7 +23,6 @@ interface User {
   name: string;
   email: string;
   phone: string;
-  // Add other properties as needed
 }
 
 const RegisterForm = ({ user }: { user: User }) => {
@@ -34,21 +33,20 @@ const RegisterForm = ({ user }: { user: User }) => {
     resolver: zodResolver(PatientFormValidation),
     defaultValues: {
       ...PatientFormDefaultValues,
-      name: "",
-      email: "", 
-      phone: "",
+      name: user.name,
+      email: user.email, 
+      phone: user.phone,
     },
   });
 
-  async function onSubmit(values: z.infer<typeof PatientFormValidation>) {
+  const onSubmit= async(values: z.infer<typeof PatientFormValidation>) => {
     setIsLoading(true);
-    let formData: FormData | undefined;
+
+    let formData
 
     if (values.identificationDocument && values.identificationDocument.length > 0) {
-      const blobFile = new Blob([values.identificationDocument[0]],{type:values.identificationDocument[0].type,
+      const blobFile = new Blob([values.identificationDocument[0]], { type: values.identificationDocument[0].type });
 
-      });
-      
       formData = new FormData();
       formData.append('blobFile', blobFile);
       formData.append('fileName', values.identificationDocument[0].name);
@@ -57,16 +55,16 @@ const RegisterForm = ({ user }: { user: User }) => {
     try {
       console.log("Form values before submission:", values);
       
-      const PatientData = {
+      const patientData = {
         ...values,
         userId: user.$id,
         birthDate: new Date(values.birthDate),
         identificationDocument: formData,
       };
       
-      console.log("Patient data to be submitted:", PatientData);
-      // @ts-ignore
-      const patient = await registerPatient(PatientData);
+      console.log("Patient data to be submitted:", patientData);
+      //@ts-ignorets-ignore
+      const patient = await registerPatient(patientData);
       
       if (patient) {
         console.log("Patient registered successfully:", patient);
@@ -130,7 +128,7 @@ const RegisterForm = ({ user }: { user: User }) => {
             label="Date of Birth"
           />
           <CustomFormField
-            fieldType={FormFieldType.SELECTON} // Ensure this is correct
+            fieldType={FormFieldType.SELECTON}
             control={form.control}
             name="gender"
             label="Gender"

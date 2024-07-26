@@ -1,6 +1,6 @@
 "use server";
 
-import { ID, Query } from "node-appwrite";
+import { ID, Query, } from "node-appwrite";
 import { BUCKET_ID, DATABASE_ID, ENDPOINT, PATIENT_COLLECTION_ID, PROJECT_ID, storage, users, database } from "../appwrite.config";
 import { parseStringify } from "../utils";
 import { InputFile } from "node-appwrite/file";
@@ -21,24 +21,22 @@ interface RegisterUserParams extends CreateUserParams {
         
     };
 }
-
-// Utility function to convert Blob to Buffer
 const blobToBuffer = async (blob: Blob): Promise<Buffer> => {
     const arrayBuffer = await blob.arrayBuffer();
     return Buffer.from(arrayBuffer);
 };
+
+
 
 export const createUser = async (user: CreateUserParams) => {
     try {
         const newUser = await users.create(
             ID.unique(),
             user.email,
-            undefined, // Password is optional in Appwrite
+            undefined, 
             user.phone,
             user.name
         );
-        console.log({ newUser });
-
         return parseStringify(newUser);
     } catch (error: any) {
         if (error && error.code === 409) {
@@ -51,17 +49,21 @@ export const createUser = async (user: CreateUserParams) => {
         throw new Error("Failed to create user");
     }
 };
-
+// GET USER
 export const getUser = async (userId: string) => {
     try {
-        const user = await users.get(userId);
-        return parseStringify(user);
+      const user = await users.get(userId);
+  
+      return parseStringify(user);
     } catch (error) {
-        console.error("An error occurred while getting the user:", error);
-        throw new Error("Failed to get user");
+      console.error(
+        "An error occurred while retrieving the user details:",
+        error
+      );
     }
-};
-
+  };
+  
+// REGISTER PATIENT
 export const registerPatient = async ({ identificationDocument, ...patient }: RegisterUserParams) => {
     try {
         let file;
@@ -70,7 +72,6 @@ export const registerPatient = async ({ identificationDocument, ...patient }: Re
             const inputFile = InputFile.fromBuffer(buffer, identificationDocument.fileName);
             file = await storage.createFile(BUCKET_ID!, ID.unique(), inputFile);
         }
-        console.log({gender: patient.gender})
 
         const newPatient = await database.createDocument(
             DATABASE_ID!,
@@ -78,14 +79,37 @@ export const registerPatient = async ({ identificationDocument, ...patient }: Re
             ID.unique(),
             {
                 identificationDocumentId: file?.$id || null,
-                identificationDocumentUrl:`${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file?.$id}/view?project=${PROJECT_ID}`,
+                identificationDocumentUrl: file ? `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${PROJECT_ID}` : null,
                 ...patient
-                
             }
         );
+
         return parseStringify(newPatient);
     } catch (error) {
-        console.error("An error occurred while registering the patient:", error);
+        if (error instanceof Error) {
+            console.error("Error message:", error.message);
+            console.error("Error stack trace:", error.stack);
+        } else {
+            console.error("Unknown error:", error);
+        }
         throw new Error("Failed to register patient");
     }
 };
+
+//GET PATIENT
+export const getPatient = async (userId: string) => {
+    try {
+      const patients = await database.listDocuments(
+        DATABASE_ID!,
+        PATIENT_COLLECTION_ID!,
+        [Query.equal("userId", [userId])]
+      );
+  
+      return parseStringify(patients.documents[0]);
+    } catch (error) {
+      console.error(
+        "An error occurred while retrieving the patient details:",
+        error
+      );
+    }
+  };
