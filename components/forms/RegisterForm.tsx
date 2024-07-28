@@ -34,22 +34,28 @@ const RegisterForm = ({ user }: { user: User }) => {
     defaultValues: {
       ...PatientFormDefaultValues,
       name: user.name,
-      email: user.email, 
+      email: user.email,
       phone: user.phone,
+      identificationDocument: undefined as File | undefined, // Initialize with undefined
     },
   });
+
 
   const onSubmit= async(values: z.infer<typeof PatientFormValidation>) => {
     setIsLoading(true);
 
     let formData
 
-    if (values.identificationDocument && values.identificationDocument.length > 0) {
-      const blobFile = new Blob([values.identificationDocument[0]], { type: values.identificationDocument[0].type });
-
-      formData = new FormData();
-      formData.append('blobFile', blobFile);
-      formData.append('fileName', values.identificationDocument[0].name);
+    if (values.identificationDocument) {
+      if (values.identificationDocument instanceof File) {
+        const blobFile = new Blob([values.identificationDocument], { type: values.identificationDocument.type });
+    
+        formData = new FormData();
+        formData.append('blobFile', blobFile);
+        formData.append('fileName', values.identificationDocument.name);
+      } else {
+        console.error("Invalid identification document");
+      }
     }
 
     try {

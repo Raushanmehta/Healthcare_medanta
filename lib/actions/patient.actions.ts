@@ -1,11 +1,9 @@
 "use server";
 
-import { ID, Query, } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { BUCKET_ID, DATABASE_ID, ENDPOINT, PATIENT_COLLECTION_ID, PROJECT_ID, storage, users, database } from "../appwrite.config";
 import { parseStringify } from "../utils";
 import { InputFile } from "node-appwrite/file";
-
-
 
 interface CreateUserParams {
     email: string;
@@ -18,22 +16,21 @@ interface RegisterUserParams extends CreateUserParams {
     identificationDocument?: {
         blobFile: Blob;
         fileName: string;
-        
     };
+    userId: string; // Ensure userId is part of RegisterUserParams
 }
+
 const blobToBuffer = async (blob: Blob): Promise<Buffer> => {
     const arrayBuffer = await blob.arrayBuffer();
     return Buffer.from(arrayBuffer);
 };
-
-
 
 export const createUser = async (user: CreateUserParams) => {
     try {
         const newUser = await users.create(
             ID.unique(),
             user.email,
-            undefined, 
+            undefined,
             user.phone,
             user.name
         );
@@ -49,23 +46,22 @@ export const createUser = async (user: CreateUserParams) => {
         throw new Error("Failed to create user");
     }
 };
+
 // GET USER
 export const getUser = async (userId: string) => {
     try {
-      const user = await users.get(userId);
-  
-      return parseStringify(user);
+        const user = await users.get(userId);
+        return parseStringify(user);
     } catch (error) {
-      console.error(
-        "An error occurred while retrieving the user details:",
-        error
-      );
+        console.error("An error occurred while retrieving the user details:", error);
     }
-  };
-  
+};
+
 // REGISTER PATIENT
-export const registerPatient = async ({ identificationDocument, ...patient }: RegisterUserParams) => {
+export const registerPatient = async ({ identificationDocument, userId, ...patient }: RegisterUserParams) => {
     try {
+        console.log("registerPatient - userId:", userId); // Log userId
+
         let file;
         if (identificationDocument) {
             const buffer = await blobToBuffer(identificationDocument.blobFile);
@@ -73,15 +69,20 @@ export const registerPatient = async ({ identificationDocument, ...patient }: Re
             file = await storage.createFile(BUCKET_ID!, ID.unique(), inputFile);
         }
 
+        const patientData = {
+            userId, // Ensure userId is included
+            identificationDocumentId: file?.$id || null,
+            identificationDocumentUrl: file ? `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${PROJECT_ID}` : null,
+            ...patient
+        };
+
+        console.log("registerPatient - patientData:", patientData);
+
         const newPatient = await database.createDocument(
             DATABASE_ID!,
             PATIENT_COLLECTION_ID!,
             ID.unique(),
-            {
-                identificationDocumentId: file?.$id || null,
-                identificationDocumentUrl: file ? `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${PROJECT_ID}` : null,
-                ...patient
-            }
+            patientData
         );
 
         return parseStringify(newPatient);
@@ -96,20 +97,17 @@ export const registerPatient = async ({ identificationDocument, ...patient }: Re
     }
 };
 
-//GET PATIENT
+// GET PATIENT
 export const getPatient = async (userId: string) => {
     try {
-      const patients = await database.listDocuments(
-        DATABASE_ID!,
-        PATIENT_COLLECTION_ID!,
-        [Query.equal("userId", [userId])]
-      );
-  
-      return parseStringify(patients.documents[0]);
+        const patients = await database.listDocuments(
+            DATABASE_ID!,
+            PATIENT_COLLECTION_ID!,
+            [Query.equal("userId", [userId])]
+        );
+
+        return parseStringify(patients.documents[0]);
     } catch (error) {
-      console.error(
-        "An error occurred while retrieving the patient details:",
-        error
-      );
+        console.error("An error occurred while retrieving the patient details:", error);
     }
-  };
+};

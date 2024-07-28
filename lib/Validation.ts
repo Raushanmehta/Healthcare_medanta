@@ -55,7 +55,8 @@ export const PatientFormValidation = z.object({
   pastMedicalHistory: z.string().optional(),
   identificationType: z.string().optional(),
   identificationNumber: z.string().optional(),
-  identificationDocument: z.custom<File[]>().optional(),
+  identificationDocument: z.custom<File>().optional(),
+  identificationDocumentUrl: z.string().url().optional(),
   treatmentConsent: z
     .boolean()
     .default(false)
@@ -75,6 +76,7 @@ export const PatientFormValidation = z.object({
       message: "You must consent to privacy in order to proceed",
     }),
 });
+
 
 export const CreateAppointmentSchema = z.object({
   primaryPhysician: z.string().min(2, "Select at least one doctor"),
