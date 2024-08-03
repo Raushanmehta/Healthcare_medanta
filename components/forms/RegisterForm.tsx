@@ -36,7 +36,7 @@ const RegisterForm = ({ user }: { user: User }) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      identificationDocument: undefined as File | undefined, // Initialize with undefined
+      identificationDocument: undefined as File | undefined, 
     },
   });
 

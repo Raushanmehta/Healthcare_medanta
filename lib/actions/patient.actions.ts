@@ -24,19 +24,20 @@ const blobToBuffer = async (blob: Blob): Promise<Buffer> => {
     const arrayBuffer = await blob.arrayBuffer();
     return Buffer.from(arrayBuffer);
 };
-
+// CREARE APPWRITE USER
 export const createUser = async (user: CreateUserParams) => {
     try {
-        const newUser = await users.create(
+        const newuser = await users.create(
             ID.unique(),
             user.email,
             undefined,
             user.phone,
             user.name
         );
-        return parseStringify(newUser);
+        return parseStringify(newuser);
     } catch (error: any) {
-        if (error && error.code === 409) {
+
+        if (error && error?.code === 409) {
             const existingUser = await users.list([
                 Query.equal('email', user.email),
             ]);
